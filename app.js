@@ -59,7 +59,7 @@ client.on("message", (msg) => {
     }
 
     msg.channel
-      .bulkDelete(amount, true)
+      .bulkDelete(amount + 1, true)
       .then(() => {
         msg.channel.send("Successfull");
         setTimeout(() => {
@@ -79,13 +79,20 @@ client.on("message", (msg) => {
       );
     }
     let query, length;
-    if (isNaN(parseInt(args[-1]))) {
+
+    // checks if last element of args is a number
+    // last element can also be used as a indicator for length
+    const lastNumberIsNotNumber = isNaN(parseInt(args.slice(-1)[0]));
+
+    if (lastNumberIsNotNumber) {
       length = 1;
       query = args.join("+");
     } else {
-      query = args.slice(0, args.length - 1);
-      length = parseInt(args[-1]);
-      length > 20 ? (length = 20) : "";
+      query = args.slice(0, args.length - 1).join("+");
+      length = parseInt(args.slice(-1)[0]);
+      if (length > 5) {
+        length = 5;
+      }
     }
 
     Axios.get(
@@ -94,7 +101,6 @@ client.on("message", (msg) => {
       if (length == 1) {
         msg.channel.send(res.data.data[0].url);
       } else {
-        console.log("lol");
         res.data.data.forEach((gif) => {
           msg.channel.send(gif.url);
         });
