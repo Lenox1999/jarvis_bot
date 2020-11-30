@@ -3,7 +3,6 @@ const { default: Axios } = require("axios");
 const Discord = require("discord.js");
 
 const { prefix, token, giphy_api_key } = require("./config.json");
-const { uploadImage } = require("./utils/postImigur");
 
 const client = new Discord.Client();
 
