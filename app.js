@@ -1,5 +1,9 @@
+const { default: Axios } = require("axios");
+
 const Discord = require("discord.js");
-const { prefix, token } = require("./config.json");
+
+const { prefix, token, giphy_api_key } = require("./config.json");
+const { uploadImage } = require("./utils/postImigur");
 
 const client = new Discord.Client();
 
@@ -46,6 +50,56 @@ client.on("message", (msg) => {
           format: "png",
         })}`
       );
+    });
+  }
+
+  if (cmd == "purge") {
+    const amount = args[0];
+    if (isNaN(amount) || amount < 2 || amount > 100) {
+      return msg.reply("Sorry, your input isnt valid!");
+    }
+
+    msg.channel
+      .bulkDelete(amount, true)
+      .then(() => {
+        msg.channel.send("Successfull");
+        setTimeout(() => {
+          msg.channel.bulkDelete(1);
+        }, 3000);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
+  // send images
+  if (cmd === "giphy") {
+    if (!args.length) {
+      return msg.reply(
+        'this functionality is there to get some gifs from the very popular platform Giphy. Search for something like "Tony Stark" and see what happens'
+      );
+    }
+    let query, length;
+    if (isNaN(parseInt(args[-1]))) {
+      length = 1;
+      query = args.join("+");
+    } else {
+      query = args.slice(0, args.length - 1);
+      length = parseInt(args[-1]);
+      length > 20 ? (length = 20) : "";
+    }
+
+    Axios.get(
+      `https://api.giphy.com/v1/gifs/search?q=${query}&api_key=${giphy_api_key}&limit=${length}`
+    ).then((res) => {
+      if (length == 1) {
+        msg.channel.send(res.data.data[0].url);
+      } else {
+        console.log("lol");
+        res.data.data.forEach((gif) => {
+          msg.channel.send(gif.url);
+        });
+      }
     });
   }
 });
