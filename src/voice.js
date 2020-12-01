@@ -1,6 +1,9 @@
 const ytdl = require("ytdl-core");
 
-module.exports = async (msg, args, join, connection) => {
+let playing = false;
+let dispatcher;
+
+module.exports = async (msg, args, join, connection, cmd) => {
   if (join) {
     if (msg.member.voice.channel) {
       return await msg.member.voice.channel.join();
@@ -9,6 +12,11 @@ module.exports = async (msg, args, join, connection) => {
     }
   } else if (!join && args[0] === "v" && connection) {
     msg.reply("Play this video now");
-    connection.play(ytdl(args[1], { filter: "audioonly" }));
+    dispatcher = connection.play(ytdl(args[1], { filter: "audioonly" }));
+    playing = true;
+  } else if (cmd === "stop" && playing == true) {
+    dispatcher.pause();
+  } else if (cmd === "resume") {
+    dispatcher.resume();
   }
 };

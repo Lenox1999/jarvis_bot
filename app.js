@@ -82,6 +82,10 @@ client.on("message", async (msg) => {
     conn = await voice(msg, args, true);
   } else if (cmd === "play") {
     await voice(msg, args, false, conn);
+  } else if (cmd === "stop") {
+    await voice(msg, args, false, conn, cmd);
+  } else if (cmd === "resume") {
+    await voice(msg, args, false, conn, cmd);
   }
 });
 
