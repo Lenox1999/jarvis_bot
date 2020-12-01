@@ -1,16 +1,19 @@
-const { default: Axios } = require("axios");
-
 const Discord = require("discord.js");
 
-const { prefix, token, giphy_api_key } = require("./config.json");
+const { prefix, token } = require("./config.json");
+const giphy = require("./src/giphy");
+const mentionRole = require("./src/mentionRole");
+const voice = require("./src/voice");
 
 const client = new Discord.Client();
+
+let conn;
 
 client.on("ready", () => {
   console.log("I'm ready");
 });
 
-client.on("message", (msg) => {
+client.on("message", async (msg) => {
   if (!msg.content.split("")[0] === prefix || msg.author.bot) return;
 
   const args = msg.content.slice(prefix.length).trim().split(/ +/);
@@ -59,7 +62,7 @@ client.on("message", (msg) => {
     }
 
     msg.channel
-      .bulkDelete(amount + 1, true)
+      .bulkDelete(amount, true)
       .then(() => {
         msg.channel.send("Successfull");
         setTimeout(() => {
@@ -70,42 +73,15 @@ client.on("message", (msg) => {
         console.error(err);
       });
   }
-
   // send images
   if (cmd === "giphy") {
-    if (!args.length) {
-      return msg.reply(
-        'this functionality is there to get some gifs from the very popular platform Giphy. Search for something like "Tony Stark" and see what happens'
-      );
-    }
-    let query, length;
-
-    // checks if last element of args is a number
-    // last element can also be used as a indicator for length
-    const lastNumberIsNotNumber = isNaN(parseInt(args.slice(-1)[0]));
-
-    if (lastNumberIsNotNumber) {
-      length = 1;
-      query = args.join("+");
-    } else {
-      query = args.slice(0, args.length - 1).join("+");
-      length = parseInt(args.slice(-1)[0]);
-      if (length > 5) {
-        length = 5;
-      }
-    }
-
-    Axios.get(
-      `https://api.giphy.com/v1/gifs/search?q=${query}&api_key=${giphy_api_key}&limit=${length}`
-    ).then((res) => {
-      if (length == 1) {
-        msg.channel.send(res.data.data[0].url);
-      } else {
-        res.data.data.forEach((gif) => {
-          msg.channel.send(gif.url);
-        });
-      }
-    });
+    giphy.execute(msg, args);
+  } else if (cmd === "mention") {
+    mentionRole(msg, args);
+  } else if (cmd === "join") {
+    conn = await voice(msg, args, true);
+  } else if (cmd === "play") {
+    await voice(msg, args, false, conn);
   }
 });
 
