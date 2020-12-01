@@ -79,6 +79,7 @@ client.on("message", async (msg) => {
   } else if (cmd === "mention") {
     mentionRole(msg, args);
   } else if (cmd === "join") {
+    //****voice related commands */
     conn = await voice(msg, args, true);
   } else if (cmd === "play") {
     await voice(msg, args, false, conn);
@@ -86,7 +87,10 @@ client.on("message", async (msg) => {
     await voice(msg, args, false, conn, cmd);
   } else if (cmd === "resume") {
     await voice(msg, args, false, conn, cmd);
+  } else if (cmd === "leave") {
+    await voice(msg, args, false, conn, cmd);
   }
+  // ********voice******
 });
 
 client.login(token);

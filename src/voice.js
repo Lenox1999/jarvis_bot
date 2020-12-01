@@ -18,5 +18,7 @@ module.exports = async (msg, args, join, connection, cmd) => {
     dispatcher.pause();
   } else if (cmd === "resume") {
     dispatcher.resume();
+  } else if (cmd === "leave") {
+    await msg.member.voice.channel.leave();
   }
 };
