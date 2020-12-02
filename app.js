@@ -73,6 +73,7 @@ client.on("message", async (msg) => {
         console.error(err);
       });
   }
+
   // send images
   if (cmd === "giphy") {
     giphy.execute(msg, args);
@@ -82,7 +83,10 @@ client.on("message", async (msg) => {
     //****voice related commands */
     conn = await voice(msg, args, true);
   } else if (cmd === "play") {
-    await voice(msg, args, false, conn);
+    if (args[0] === "s") {
+      await voice(msg, args.slice(1), false, conn, "play_searched");
+    }
+    await voice(msg, args, false, conn, cmd);
   } else if (cmd === "stop") {
     await voice(msg, args, false, conn, cmd);
   } else if (cmd === "resume") {
