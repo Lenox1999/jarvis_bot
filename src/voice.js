@@ -1,16 +1,15 @@
 const ytdl = require("ytdl-core");
-const extractWatchIds = require("../utils/extractWatchIds");
 const stringIsLink = require("../utils/stringIsLink");
 const youtubeSearchApiWrapper = require("../utils/youtubeSearchApiWrapper");
-
-const coreYTurl = "https://www.youtube.com/watch?v=";
 
 let playing = false;
 let dispatcher;
 const queue = [];
 let msg;
+let conn;
 
 module.exports = async (_msg, args, join, connection, cmd) => {
+  conn = connection;
   msg = _msg;
   if (join) {
     if (msg.member.voice.channel && join) {
@@ -41,10 +40,9 @@ module.exports = async (_msg, args, join, connection, cmd) => {
         //extract watch id from link (ids are 11 chars long)
       } else if (dispatcher && playing) {
         //means playing is already playing a song
-        const watchId = extractWatchIds(args[0]);
         msg.reply("added this vid to queue");
-        queue.push(coreYTurl + watchId);
-        player(connection);
+        queue.push(args[0]);
+        console.log(queue);
       }
   } else if (cmd === "stop" && playing == true) {
     dispatcher.pause();
@@ -68,14 +66,32 @@ module.exports = async (_msg, args, join, connection, cmd) => {
   }
 };
 
+let track = 1;
+
 const player = (connection) => {
-  queue.forEach(async (song) => {
-    console.log(connection, queue);
+  queue.forEach((song) => {
+    // if (song === queue[track -1]) {
+
+    // }
+    console.log(queue);
     try {
-      dispatcher = await connection.play(ytdl(song, { filter: "audioonly" }));
+      playing = true;
+      (dispatcher = connection.play(
+        ytdl(queue[track - 1], { filter: "audioonly" })
+      )).once("finish", checkQueue.bind(this, connection));
     } catch (err) {
       console.log(err);
       msg.reply("sorry but something has gone wrong");
+      playing = false;
     }
   });
+};
+
+const checkQueue = (connection) => {
+  track++;
+  console.log("lol???", queue[track - 1]);
+  if (queue[track - 1]) {
+    console.log("lol", queue);
+    player(connection);
+  }
 };
