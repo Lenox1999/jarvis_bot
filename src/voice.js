@@ -78,7 +78,7 @@ const player = async (connection) => {
     getYTTitle(extractWatchIds(queue[track - 1]), (err, title) => {
       if (!err) {
         pageTitle = title;
-        msg.channel.send("Now playing: " + pageTitle);
+        msg.channel.send(`Now playing: **${pageTitle}**`);
         (dispatcher = connection.play(
           ytdl(queue[track - 1], { filter: "audioonly" })
         )).once("finish", checkQueue.bind(this, connection));

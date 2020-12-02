@@ -10,6 +10,5 @@ module.exports = (string) => {
   ); // fragment locator
 
   const isTrue = !!checker.test(string);
-  console.log(isTrue);
   return isTrue;
 };
