@@ -1,15 +1,15 @@
 const ytdl = require("ytdl-core");
 const stringIsLink = require("../utils/stringIsLink");
 const youtubeSearchApiWrapper = require("../utils/youtubeSearchApiWrapper");
+const getYTTitle = require("get-youtube-title");
+const extractWatchIds = require("../utils/extractWatchIds");
 
 let playing = false;
 let dispatcher;
-const queue = [];
+let queue = [];
 let msg;
-let conn;
 
 module.exports = async (_msg, args, join, connection, cmd) => {
-  conn = connection;
   msg = _msg;
   if (join) {
     if (msg.member.voice.channel && join) {
@@ -42,7 +42,9 @@ module.exports = async (_msg, args, join, connection, cmd) => {
         //means playing is already playing a song
         msg.reply("added this vid to queue");
         queue.push(args[0]);
-        console.log(queue);
+      } else if (dispatcher && !playing) {
+        queue.push(args[0]);
+        player(connection);
       }
   } else if (cmd === "stop" && playing == true) {
     dispatcher.pause();
@@ -68,30 +70,36 @@ module.exports = async (_msg, args, join, connection, cmd) => {
 
 let track = 1;
 
-const player = (connection) => {
-  queue.forEach((song) => {
-    // if (song === queue[track -1]) {
+const player = async (connection) => {
+  try {
+    playing = true;
 
-    // }
-    console.log(queue);
-    try {
-      playing = true;
-      (dispatcher = connection.play(
-        ytdl(queue[track - 1], { filter: "audioonly" })
-      )).once("finish", checkQueue.bind(this, connection));
-    } catch (err) {
-      console.log(err);
-      msg.reply("sorry but something has gone wrong");
-      playing = false;
-    }
-  });
+    let pageTitle;
+    getYTTitle(extractWatchIds(queue[track - 1]), (err, title) => {
+      if (!err) {
+        pageTitle = title;
+        msg.channel.send("Now playing: " + pageTitle);
+        (dispatcher = connection.play(
+          ytdl(queue[track - 1], { filter: "audioonly" })
+        )).once("finish", checkQueue.bind(this, connection));
+      } else {
+        throw new Error(err);
+      }
+    });
+  } catch (err) {
+    msg.reply("sorry but something has gone wrong");
+    playing = false;
+  }
 };
 
 const checkQueue = (connection) => {
   track++;
-  console.log("lol???", queue[track - 1]);
   if (queue[track - 1]) {
-    console.log("lol", queue);
     player(connection);
+  } else {
+    playing = false;
+    queue = [];
+    track = 1;
+    dispatcher = undefined;
   }
 };
