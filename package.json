@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon app.js",
-    "prod": "node app.js",
+    "prod": "NODE_ENV=production node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,10 +16,10 @@
     "axios": "^0.21.0",
     "cheerio": "^1.0.0-rc.3",
     "discord.js": "^12.5.1",
+    "dotenv": "^8.2.0",
     "ffmpeg-static": "^4.2.7",
     "form-data": "^3.0.0",
-    "get-youtube-title": "^1.0.1",
-    "ytdl-core": "^4.1.1"
+    "ytdl-core": "^4.1.2"
   },
   "devDependencies": {
     "eslint": "^7.14.0",

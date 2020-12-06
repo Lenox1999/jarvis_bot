@@ -1,13 +1,28 @@
 const Discord = require("discord.js");
 
-const { prefix, token } = require("./config.json");
 const giphy = require("./src/giphy");
 const mentionRole = require("./src/mentionRole");
 const voice = require("./src/voice");
+// only needed in production
+const config = require("./config.json");
+
+// assume dev mode
+require("dotenv").config();
+
+let prefix, token;
+// check if node env 'production' is set which means bot is in prod mode
+if (process.env.NODE_ENV === "production") {
+  prefix = config.prefix;
+  token = config.token;
+} else {
+  token = process.env.BOT_TOKEN;
+  prefix = process.env.BOT_PREFIX;
+}
 
 const client = new Discord.Client();
 
 let conn;
+
 
 client.on("ready", () => {
   console.log("I'm ready");
@@ -82,18 +97,28 @@ client.on("message", async (msg) => {
   } else if (cmd === "join") {
     //****voice related commands */
     conn = await voice(msg, args, true);
-  } else if (cmd === "play") {
-    if (args[0] === "s") {
-      await voice(msg, args.slice(1), false, conn, "play_searched");
-    }
-    await voice(msg, args, false, conn, cmd);
-  } else if (cmd === "stop") {
-    await voice(msg, args, false, conn, cmd);
-  } else if (cmd === "resume") {
-    await voice(msg, args, false, conn, cmd);
-  } else if (cmd === "leave") {
+  } else if (
+    cmd === "play" ||
+    cmd === "stop" ||
+    cmd === "resume" ||
+    cmd === "leave" ||
+    cmd === "skip"
+  ) {
     await voice(msg, args, false, conn, cmd);
   }
+  //   if (args[0] === "s") {
+  //     await voice(msg, args.slice(1), false, conn, "play_searched");
+  //   }
+  //   await voice(msg, args, false, conn, cmd);
+  // } else if (cmd === "stop") {
+  //   await voice(msg, args, false, conn, cmd);
+  // } else if (cmd === "resume") {
+  //   await voice(msg, args, false, conn, cmd);
+  // } else if (cmd === "leave") {
+  //   await voice(msg, args, false, conn, cmd);
+  // } else if (cmd === "skip") {
+  //   await voice(msg, args, false, conn, cmd);
+  // }
   // ********voice******
 });
 
