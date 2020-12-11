@@ -4,6 +4,6 @@ package-lock.json
 
 config.ts
 
-.env
-
 dist
+
+.env
