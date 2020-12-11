@@ -23,6 +23,8 @@ const client = new Discord.Client();
 
 let conn;
 
+console.log("lol", prefix);
+
 client.on("ready", () => {
   console.log("I'm ready");
 });
