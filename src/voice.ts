@@ -1,3 +1,5 @@
+import { Message, VoiceBroadcast, VoiceConnection } from "discord.js";
+
 const ytdl = require("ytdl-core");
 const stringIsLink = require("../utils/stringIsLink");
 const youtubeSearchApiWrapper = require("../utils/youtubeSearchApiWrapper");
@@ -11,7 +13,13 @@ let dispatcher;
 let queue = [];
 let msg;
 
-module.exports = async (_msg, args, join, connection, cmd) => {
+export const voice = async (
+  _msg: Message,
+  args,
+  join: boolean,
+  connection: VoiceConnection,
+  cmd
+) => {
   if (connection) {
     saveConn(connection);
   }
