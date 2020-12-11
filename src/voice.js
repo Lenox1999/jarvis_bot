@@ -4,12 +4,17 @@ const youtubeSearchApiWrapper = require("../utils/youtubeSearchApiWrapper");
 // const getYTTitle = require("get-youtube-title");
 const extractWatchIds = require("../utils/extractWatchIds");
 
+const { saveConn } = require("../app");
+
 let playing = false;
 let dispatcher;
 let queue = [];
 let msg;
 
 module.exports = async (_msg, args, join, connection, cmd) => {
+  if (connection) {
+    saveConn(connection);
+  }
   msg = _msg;
   if (cmd === "stop" || cmd === "skip" || (cmd === "leave" && !connection)) {
     return msg.reply(
@@ -64,6 +69,11 @@ module.exports = async (_msg, args, join, connection, cmd) => {
         console.log(link, title);
         queue.push(link);
         player(connection, title);
+      } else if (!stringIsLink(args[0])) {
+        const { link, title } = await youtubeSearchApiWrapper(args);
+        console.log(link, title);
+        msg.reply("yo, added this vid to the queue");
+        queue.push(link);
       }
   } else if (cmd === "stop" && playing == true) {
     queue = [];

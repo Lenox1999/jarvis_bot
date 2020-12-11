@@ -23,7 +23,6 @@ const client = new Discord.Client();
 
 let conn;
 
-
 client.on("ready", () => {
   console.log("I'm ready");
 });
@@ -123,3 +122,9 @@ client.on("message", async (msg) => {
 });
 
 client.login(token);
+
+const saveConn = (_conn) => {
+  conn = _conn;
+};
+
+module.exports.saveConn = saveConn;
