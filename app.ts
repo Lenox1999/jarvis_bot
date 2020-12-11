@@ -1,27 +1,37 @@
+import {
+  Collection,
+  Message,
+  Snowflake,
+  User,
+  VoiceConnection,
+} from "discord.js";
+
 const Discord = require("discord.js");
 
 const giphy = require("./src/giphy");
 const mentionRole = require("./src/mentionRole");
-const voice = require("./src/voice");
+import voice from "./src/voice.ts";
 // only needed in production
 const config = require("./config.json");
+
+export type bulkDelete = Promise<Collection<Snowflake, Message>>;
 
 // assume dev mode
 require("dotenv").config();
 
-let prefix, token;
+let prefix: string, token: string;
 // check if node env 'production' is set which means bot is in prod mode
 if (process.env.NODE_ENV === "production") {
   prefix = config.prefix;
   token = config.token;
 } else {
-  token = process.env.BOT_TOKEN;
-  prefix = process.env.BOT_PREFIX;
+  token = process.env.BOT_TOKEN as string;
+  prefix = process.env.BOT_PREFIX as string;
 }
 
 const client = new Discord.Client();
 
-let conn;
+let conn: VoiceConnection;
 
 console.log("lol", prefix);
 
@@ -29,11 +39,11 @@ client.on("ready", () => {
   console.log("I'm ready");
 });
 
-client.on("message", async (msg) => {
-  if (!msg.content.split("")[0] === prefix || msg.author.bot) return;
+client.on("message", async (msg: Message) => {
+  if (msg.content.split("")[0] !== prefix || msg.author.bot) return;
 
   const args = msg.content.slice(prefix.length).trim().split(/ +/);
-  const cmd = args.shift().toLowerCase();
+  const cmd = args.shift()!.toLowerCase();
 
   if (cmd === "args-info") {
     if (!args.length) {
@@ -61,7 +71,7 @@ client.on("message", async (msg) => {
         })}`
       );
     }
-    msg.mentions.users.forEach((user) => {
+    msg.mentions.users.forEach((user: User) => {
       msg.channel.send(
         `${user.username}'s avatar: ${user.avatarURL({
           dynamic: true,
@@ -72,20 +82,23 @@ client.on("message", async (msg) => {
   }
 
   if (cmd == "purge") {
-    const amount = args[0];
+    const amount = parseInt(args[0]);
     if (isNaN(amount) || amount < 2 || amount > 100) {
       return msg.reply("Sorry, your input isnt valid!");
     }
+
+    if (msg.channel.type == "dm") return;
 
     msg.channel
       .bulkDelete(amount, true)
       .then(() => {
         msg.channel.send("Successfull");
         setTimeout(() => {
+          if (msg.channel.type == "dm") return;
           msg.channel.bulkDelete(1);
         }, 3000);
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         console.error(err);
       });
   }
@@ -125,7 +138,7 @@ client.on("message", async (msg) => {
 
 client.login(token);
 
-const saveConn = (_conn) => {
+const saveConn = (_conn: VoiceConnection) => {
   conn = _conn;
 };
 
