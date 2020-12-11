@@ -1,7 +1,7 @@
 const ytdl = require("ytdl-core");
 const stringIsLink = require("../utils/stringIsLink");
 const youtubeSearchApiWrapper = require("../utils/youtubeSearchApiWrapper");
-const getYTTitle = require("get-youtube-title");
+// const getYTTitle = require("get-youtube-title");
 const extractWatchIds = require("../utils/extractWatchIds");
 
 let playing = false;
@@ -11,6 +11,17 @@ let msg;
 
 module.exports = async (_msg, args, join, connection, cmd) => {
   msg = _msg;
+  if (cmd === "stop" || cmd === "skip" || (cmd === "leave" && !connection)) {
+    return msg.reply(
+      "you cant use that command when i am not connected to a voice channel right now"
+    );
+  } else if (!connection) {
+    if (msg.member.voice.channel && join) {
+      connection = await msg.member.voice.channel.join();
+    } else {
+      msg.reply("you arent in a voice channel right now!");
+    }
+  }
   if (join) {
     if (msg.member.voice.channel && join) {
       return await msg.member.voice.channel.join();
@@ -24,6 +35,7 @@ module.exports = async (_msg, args, join, connection, cmd) => {
         // 1. : v to play it directly with a link
         // 2. : s to search for a video with search api
         // 3. : to queue a song when bot is already playing
+        //TODO: loop function and share function
 
         //only for reference
         // dispatcher = connection.play(ytdl(args[1], { filter: "audioonly" }));
@@ -38,15 +50,23 @@ module.exports = async (_msg, args, join, connection, cmd) => {
         queue.push(args[0]);
         player(connection);
         //extract watch id from link (ids are 11 chars long)
-      } else if (dispatcher && playing) {
+      } else if (dispatcher && playing && stringIsLink(args[0])) {
         //means playing is already playing a song
         msg.reply("added this vid to queue");
         queue.push(args[0]);
       } else if (dispatcher && !playing) {
         queue.push(args[0]);
         player(connection);
+      } else if (!stringIsLink(args[0]) && !playing) {
+        const { link, title } = await youtubeSearchApiWrapper(args);
+        // msg.channel.send(`Playing now: ${title}`);
+        // msg.channel.send(thumbNail);
+        console.log(link, title);
+        queue.push(link);
+        player(connection, title);
       }
   } else if (cmd === "stop" && playing == true) {
+    queue = [];
     dispatcher.pause();
     playing = false;
   } else if (cmd === "resume") {
@@ -65,28 +85,34 @@ module.exports = async (_msg, args, join, connection, cmd) => {
     msg.channel.send(thumbNail);
     dispatcher = connection.play(ytdl(videoToPlay, { filter: "audioonly" }));
     playing = true;
+  } else if (cmd === "skip" && dispatcher && queue.length - track > 0) {
+    dispatcher.pause();
+    track++;
+    player(connection);
   }
 };
 
 let track = 1;
 
-const player = async (connection) => {
+const player = async (connection, _title) => {
   try {
     playing = true;
 
-    let pageTitle;
-    getYTTitle(extractWatchIds(queue[track - 1]), (err, title) => {
-      if (!err) {
-        pageTitle = title;
-        msg.channel.send(`Now playing: **${pageTitle}**`);
-        (dispatcher = connection.play(
-          ytdl(queue[track - 1], { filter: "audioonly" })
-        )).once("finish", checkQueue.bind(this, connection));
-      } else {
-        throw new Error(err);
-      }
-    });
+    let title = _title;
+    if (!title) {
+      const res = await youtubeSearchApiWrapper(
+        extractWatchIds(queue[track - 1]),
+        true
+      );
+      title = res.title;
+    }
+
+    msg.channel.send(`Now playing: **${title}**`);
+    (dispatcher = connection.play(
+      ytdl(queue[track - 1], { filter: "audioonly" })
+    )).once("finish", checkQueue.bind(this, connection));
   } catch (err) {
+    console.log(err);
     msg.reply("sorry but something has gone wrong");
     playing = false;
   }
