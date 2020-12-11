@@ -1,11 +1,12 @@
-const axios = require("axios");
-const FormData = require("form-data");
+import axios, { AxiosRequestConfig } from "axios";
+import { MessageEmbedImage } from "discord.js";
+import FormData from "form-data";
 
-exports.uploadImage = (img) => {
+export default (img: MessageEmbedImage) => {
   const data = new FormData();
   data.append("image", img);
 
-  const config = {
+  const config : AxiosRequestConfig = {
     method: "post",
     url: "https://api.imgur.com/3/image",
     headers: {

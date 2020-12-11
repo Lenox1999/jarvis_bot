@@ -10,7 +10,7 @@ const Discord = require("discord.js");
 
 const giphy = require("./src/giphy");
 const mentionRole = require("./src/mentionRole");
-import voice from "./src/voice.ts";
+import {voice} from "./src/voice";
 // only needed in production
 const config = require("./config.json");
 
@@ -110,7 +110,7 @@ client.on("message", async (msg: Message) => {
     mentionRole(msg, args);
   } else if (cmd === "join") {
     //****voice related commands */
-    conn = await voice(msg, args, true);
+    conn = await voice(msg, args, true) as VoiceConnection;
   } else if (
     cmd === "play" ||
     cmd === "stop" ||
@@ -138,8 +138,7 @@ client.on("message", async (msg: Message) => {
 
 client.login(token);
 
-const saveConn = (_conn: VoiceConnection) => {
+export const saveConn = (_conn: VoiceConnection) => {
   conn = _conn;
 };
 
-module.exports.saveConn = saveConn;

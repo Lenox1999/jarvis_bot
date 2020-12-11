@@ -1,10 +1,10 @@
 const axios = require("axios");
 const { google_api_key, youtube_base_url } = require("../config.json");
 
-module.exports = async (args, link) => {
+module.exports = async (args:  string[], link?: string) => {
   let search;
   if (!link) {
-    args.length > 1 ? (search = args.join("%20")) : (search = args);
+    args.length > 1 ? (search = args.join("%20"))  : (search = args);
   } else {
     search = args[0];
   }

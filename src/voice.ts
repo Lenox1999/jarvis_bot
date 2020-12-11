@@ -1,4 +1,4 @@
-import { Message, VoiceBroadcast, VoiceConnection } from "discord.js";
+import { BroadcastDispatcher, Message, StreamDispatcher, VoiceConnection } from "discord.js";
 
 const ytdl = require("ytdl-core");
 const stringIsLink = require("../utils/stringIsLink");
@@ -9,35 +9,34 @@ const extractWatchIds = require("../utils/extractWatchIds");
 const { saveConn } = require("../app");
 
 let playing = false;
-let dispatcher;
-let queue = [];
-let msg;
+let dispatcher: StreamDispatcher;
+let queue: string[] = [];
+let msg: Message;
 
 export const voice = async (
   _msg: Message,
-  args,
+  args: string[],
   join: boolean,
-  connection: VoiceConnection,
-  cmd
+  connection?: VoiceConnection,
+  cmd?: string
 ) => {
-  if (connection) {
-    saveConn(connection);
-  }
+  if (connection) saveConn(connection);
+  if (!msg.member) return msg.reply('Something bad happened');
   msg = _msg;
   if (cmd === "stop" || cmd === "skip" || (cmd === "leave" && !connection)) {
     return msg.reply(
       "you cant use that command when i am not connected to a voice channel right now"
     );
   } else if (!connection) {
-    if (msg.member.voice.channel && join) {
-      connection = await msg.member.voice.channel.join();
+    if (msg.member!.voice.channel && join) {
+      connection = await msg.member!.voice.channel.join();
     } else {
       msg.reply("you arent in a voice channel right now!");
     }
   }
   if (join) {
-    if (msg.member.voice.channel && join) {
-      return await msg.member.voice.channel.join();
+    if (msg.member!.voice.channel && join) {
+      return await msg.member!.voice.channel.join();
     } else {
       msg.reply("you arent in a voice channel right now!");
     }
@@ -61,6 +60,7 @@ export const voice = async (
         msg.reply("Play this video now");
         // const watchId = extractWatchIds(args[0]);
         queue.push(args[0]);
+        if (!connection) return;
         player(connection);
         //extract watch id from link (ids are 11 chars long)
       } else if (dispatcher && playing && stringIsLink(args[0])) {
@@ -69,6 +69,7 @@ export const voice = async (
         queue.push(args[0]);
       } else if (dispatcher && !playing) {
         queue.push(args[0]);
+        if (!connection) return;
         player(connection);
       } else if (!stringIsLink(args[0]) && !playing) {
         const { link, title } = await youtubeSearchApiWrapper(args);
@@ -76,6 +77,7 @@ export const voice = async (
         // msg.channel.send(thumbNail);
         console.log(link, title);
         queue.push(link);
+        if (!connection) return;
         player(connection, title);
       } else if (!stringIsLink(args[0])) {
         const { link, title } = await youtubeSearchApiWrapper(args);
@@ -90,7 +92,7 @@ export const voice = async (
   } else if (cmd === "resume") {
     dispatcher.resume();
   } else if (cmd === "leave") {
-    await msg.member.voice.channel.leave();
+    msg.member!.voice.channel!.leave();
   } else if (cmd === "play_searched") {
     //search on youtube with youtube search api
     let search;
@@ -101,18 +103,21 @@ export const voice = async (
     const thumbNail = searchResult.data.items[0].snippet.thumbnails.default.url;
     msg.reply(`Playing now ${name}`);
     msg.channel.send(thumbNail);
+
+    if (!connection) return;
     dispatcher = connection.play(ytdl(videoToPlay, { filter: "audioonly" }));
     playing = true;
   } else if (cmd === "skip" && dispatcher && queue.length - track > 0) {
     dispatcher.pause();
     track++;
+    if (!connection) return;
     player(connection);
   }
 };
 
 let track = 1;
 
-const player = async (connection, _title) => {
+const player = async (connection: VoiceConnection, _title?: string) => {
   try {
     playing = true;
 
@@ -136,7 +141,7 @@ const player = async (connection, _title) => {
   }
 };
 
-const checkQueue = (connection) => {
+const checkQueue = (connection: VoiceConnection) => {
   track++;
   if (queue[track - 1]) {
     player(connection);
@@ -144,6 +149,6 @@ const checkQueue = (connection) => {
     playing = false;
     queue = [];
     track = 1;
-    dispatcher = undefined;
+    dispatcher.pause();
   }
 };
