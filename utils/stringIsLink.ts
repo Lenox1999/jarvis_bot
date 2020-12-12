@@ -1,4 +1,4 @@
-module.exports = (string: string) => {
+export default (string: string) => {
   const checker = new RegExp(
     "^(https?:\\/\\/)?" + // protocol
       "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // domain name

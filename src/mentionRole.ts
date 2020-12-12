@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 
 /* eslint-disable no-unused-vars */
-module.exports = (msg: Message, _args: string[]) => {
+export default (msg: Message, _args: string[]) => {
   if (!msg.mentions.users.size && !msg.mentions.roles.size) {
     msg.reply("pleb, you havent mentioned anyone");
   }

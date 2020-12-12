@@ -6,13 +6,13 @@ import {
   VoiceConnection,
 } from "discord.js";
 
-const Discord = require("discord.js");
+import Discord from "discord.js";
 
-const giphy = require("./src/giphy");
-const mentionRole = require("./src/mentionRole");
+import giphy from "./src/giphy";
+import mentionRole from "./src/mentionRole";
 import {voice} from "./src/voice";
 // only needed in production
-const config = require("./config.json");
+import config from './config';
 
 export type bulkDelete = Promise<Collection<Snowflake, Message>>;
 
@@ -92,7 +92,7 @@ client.on("message", async (msg: Message) => {
     msg.channel
       .bulkDelete(amount, true)
       .then(() => {
-        msg.channel.send("Successfull");
+        msg.channel.send("Successful");
         setTimeout(() => {
           if (msg.channel.type == "dm") return;
           msg.channel.bulkDelete(1);
@@ -110,7 +110,7 @@ client.on("message", async (msg: Message) => {
     mentionRole(msg, args);
   } else if (cmd === "join") {
     //****voice related commands */
-    conn = await voice(msg, args, true) as VoiceConnection;
+     await voice(msg, args, true , conn, );
   } else if (
     cmd === "play" ||
     cmd === "stop" ||
@@ -120,25 +120,12 @@ client.on("message", async (msg: Message) => {
   ) {
     await voice(msg, args, false, conn, cmd);
   }
-  //   if (args[0] === "s") {
-  //     await voice(msg, args.slice(1), false, conn, "play_searched");
-  //   }
-  //   await voice(msg, args, false, conn, cmd);
-  // } else if (cmd === "stop") {
-  //   await voice(msg, args, false, conn, cmd);
-  // } else if (cmd === "resume") {
-  //   await voice(msg, args, false, conn, cmd);
-  // } else if (cmd === "leave") {
-  //   await voice(msg, args, false, conn, cmd);
-  // } else if (cmd === "skip") {
-  //   await voice(msg, args, false, conn, cmd);
-  // }
-  // ********voice******
 });
 
 client.login(token);
 
 export const saveConn = (_conn: VoiceConnection) => {
+  console.log('hey')
   conn = _conn;
 };
 

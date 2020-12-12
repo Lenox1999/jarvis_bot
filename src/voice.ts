@@ -1,12 +1,12 @@
-import { BroadcastDispatcher, Message, StreamDispatcher, VoiceConnection } from "discord.js";
+import { Message, StreamDispatcher, VoiceConnection } from "discord.js";
 
-const ytdl = require("ytdl-core");
-const stringIsLink = require("../utils/stringIsLink");
-const youtubeSearchApiWrapper = require("../utils/youtubeSearchApiWrapper");
+import ytdl from "ytdl-core";
+import stringIsLink from "../utils/stringIsLink";
+import youtubeSearchApiWrapper from "../utils/youtubeSearchApiWrapper";
 // const getYTTitle = require("get-youtube-title");
-const extractWatchIds = require("../utils/extractWatchIds");
+import extractWatchIds from "../utils/extractWatchIds";
 
-const { saveConn } = require("../app");
+import { saveConn } from "../app";
 
 let playing = false;
 let dispatcher: StreamDispatcher;
@@ -17,21 +17,21 @@ export const voice = async (
   _msg: Message,
   args: string[],
   join: boolean,
-  connection?: VoiceConnection,
+  connection: VoiceConnection,
   cmd?: string
 ) => {
-  if (connection) saveConn(connection);
-  if (!msg.member) return msg.reply('Something bad happened');
+  // if (!msg.author) return msg.reply('Something bad happened');
   msg = _msg;
   if (cmd === "stop" || cmd === "skip" || (cmd === "leave" && !connection)) {
     return msg.reply(
       "you cant use that command when i am not connected to a voice channel right now"
     );
   } else if (!connection) {
-    if (msg.member!.voice.channel && join) {
-      connection = await msg.member!.voice.channel.join();
+    if (msg.member && msg.member.voice.channel) {
+      connection = await msg.member.voice.channel.join();
+      if (connection) saveConn(connection);
     } else {
-      msg.reply("you arent in a voice channel right now!");
+      return msg.reply("you arent in a voice channel right now!");
     }
   }
   if (join) {
@@ -43,19 +43,6 @@ export const voice = async (
   } else if (cmd === "play") {
     if (args[0])
       if (!dispatcher && stringIsLink(args[0]) && !playing) {
-        // multiple ways to use this function
-        // 1. : v to play it directly with a link
-        // 2. : s to search for a video with search api
-        // 3. : to queue a song when bot is already playing
-        //TODO: loop function and share function
-
-        //only for reference
-        // dispatcher = connection.play(ytdl(args[1], { filter: "audioonly" }));
-        // playing = true;
-        // only for reference
-
-        // new code
-
         // means bot isnt initialized yet
         msg.reply("Play this video now");
         // const watchId = extractWatchIds(args[0]);
@@ -96,11 +83,12 @@ export const voice = async (
   } else if (cmd === "play_searched") {
     //search on youtube with youtube search api
     let search;
-    args.length > 1 ? (search = args.join("%20")) : (search = args);
+    // args.length > 1 ? (search = args.join("%20")) : (search = args);
+    search = args;
     let searchResult = await youtubeSearchApiWrapper(search);
-    const videoToPlay = searchResult.data.items[0].id.videoId;
-    const name = searchResult.data.items[0].snippet.title;
-    const thumbNail = searchResult.data.items[0].snippet.thumbnails.default.url;
+    const videoToPlay = searchResult.link;
+    const name = searchResult.title;
+    const thumbNail = searchResult.thumbNail;
     msg.reply(`Playing now ${name}`);
     msg.channel.send(thumbNail);
 
@@ -123,10 +111,9 @@ const player = async (connection: VoiceConnection, _title?: string) => {
 
     let title = _title;
     if (!title) {
-      const res = await youtubeSearchApiWrapper(
+      const res = await youtubeSearchApiWrapper([
         extractWatchIds(queue[track - 1]),
-        true
-      );
+      ]);
       title = res.title;
     }
 
