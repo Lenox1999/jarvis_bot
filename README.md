@@ -1,3 +1,7 @@
-## Special REPO !!!
+# Jarvis Bot
+*******
+## Features
 
-code will be converted to typescript ... not ready for prod yet!!
+- show Avatar of any user
+- play music from YouTube via link or name (search included)
+### Project not currently under development
