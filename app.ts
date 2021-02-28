@@ -10,9 +10,9 @@ import Discord from "discord.js";
 
 import giphy from "./src/giphy";
 import mentionRole from "./src/mentionRole";
-import {voice} from "./src/voice";
+import { voice } from "./src/voice";
 // only needed in production
-import config from './config';
+import config from "./config";
 
 export type bulkDelete = Promise<Collection<Snowflake, Message>>;
 
@@ -32,8 +32,6 @@ if (process.env.NODE_ENV === "production") {
 const client = new Discord.Client();
 
 let conn: VoiceConnection;
-
-console.log("lol", prefix);
 
 client.on("ready", () => {
   console.log("I'm ready");
@@ -110,7 +108,7 @@ client.on("message", async (msg: Message) => {
     mentionRole(msg, args);
   } else if (cmd === "join") {
     //****voice related commands */
-     await voice(msg, args, true , conn, );
+    await voice(msg, args, true, conn);
   } else if (
     cmd === "play" ||
     cmd === "stop" ||
@@ -125,7 +123,6 @@ client.on("message", async (msg: Message) => {
 client.login(token);
 
 export const saveConn = (_conn: VoiceConnection) => {
-  console.log('hey')
+  console.log("hey");
   conn = _conn;
 };
-
